@@ -64,13 +64,14 @@ app.get('/tweets', (req, res) => {
 
         return { ...item, avatar: foundUser.avatar };
       });
-    return res.status(200).send(lastTenTweets);
+    return res.status(200).send(lastTenTweets.slice(0).reverse());
   } else {
     if (page >= 1) {
-      const minIdxTweetsPage = tweets.length - page * 10;
-      const maxIdxTweetsPage = minIdxTweetsPage + 9;
+      const invertTweets = tweets.slice(0).reverse();
+      const maxIdxTweetsPage = page * 10 - 1;
+      const minIdxTweetsPage = maxIdxTweetsPage - 9;
 
-      const filteredTweets = tweets
+      const filteredTweets = invertTweets
         .filter((_, idx) => idx >= minIdxTweetsPage && idx <= maxIdxTweetsPage)
         .map(item => {
           const foundUser = findUser(item.username);
@@ -85,17 +86,21 @@ app.get('/tweets', (req, res) => {
   }
 });
 
-app.get('/tweets/:username', (req, res) => {
-  const username = req.params.username;
-  const tweetsByUsername = tweets
-    .filter(user => user.username === username)
-    .map(item => {
-      const foundUser = findUser(item.username);
+app.get('/tweets/:USERNAME', (req, res) => {
+  const username = req.params.USERNAME;
+  const foundUser = findUser(username);
 
-      return { ...item, avatar: foundUser.avatar };
-    });
+  if (!foundUser) {
+    return res.status(400);
+  } else {
+    const tweetsByUsername = tweets
+      .filter(user => user.username === username)
+      .map(item => {
+        return { ...item, avatar: foundUser.avatar };
+      });
 
-  return res.status(200).send(tweetsByUsername);
+    return res.status(200).send(tweetsByUsername);
+  }
 });
 
 const PORT = 5000;
