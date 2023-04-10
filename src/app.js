@@ -86,8 +86,8 @@ app.get('/tweets', (req, res) => {
   }
 });
 
-app.get('/tweets/:USERNAME', (req, res) => {
-  const username = req.params.USERNAME;
+app.get('/tweets/:username', (req, res) => {
+  const { username } = req.params;
   const foundUser = findUser(username);
 
   if (!foundUser) {
@@ -96,7 +96,11 @@ app.get('/tweets/:USERNAME', (req, res) => {
     const tweetsByUsername = tweets
       .filter(user => user.username === username)
       .map(item => {
-        return { ...item, avatar: foundUser.avatar };
+        return {
+          username: item.username,
+          avatar: foundUser.avatar,
+          tweet: item.tweet
+        };
       });
 
     return res.status(200).send(tweetsByUsername);
