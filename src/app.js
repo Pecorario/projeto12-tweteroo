@@ -86,12 +86,12 @@ app.get('/tweets', (req, res) => {
   }
 });
 
-app.get('/tweets/:username', (req, res) => {
-  const { username } = req.params;
-  const foundUser = findUser(username);
+app.get('/tweets/:USERNAME', (req, res) => {
+  const { USERNAME } = req.params;
+  const foundUser = findUser(USERNAME);
 
   const tweetsByUsername = tweets
-    .filter(tweet => tweet.username.toLowerCase() === username.toLowerCase())
+    .filter(tweet => tweet.username.toLowerCase() === USERNAME.toLowerCase())
     .map(item => {
       return {
         ...item,
