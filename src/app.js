@@ -17,65 +17,85 @@ const findUser = username => {
 app.post('/sign-up', (req, res) => {
   const { username, avatar } = req.body;
 
-  const errors = [];
+  const hasUserAndIsString = username && typeof username === 'string';
+  const hasAvatarAndIsString = avatar && typeof avatar === 'string';
 
-  if (username === '' || username === undefined) {
-    errors.push('O username é obrigatório!');
+  if (!hasUserAndIsString || !hasAvatarAndIsString) {
+    return res.status(400).send('Todos os campos são obrigatórios!');
   }
-  if (avatar === '' || avatar === undefined) {
-    errors.push('O avatar é obrigatório!');
-  }
+
   if (findUser(username)) {
-    errors.push('Este username já está em uso!');
+    return res.status(400).send('Este username já está em uso!');
   }
 
-  if (errors.length > 0) {
-    return res.status(422).send(errors);
-  } else {
-    users.push({ username, avatar });
-    return res.status(200).send('Ok');
-  }
+  users.push({ username, avatar });
+  return res.status(201).send('Ok');
 });
 
 app.post('/tweets', (req, res) => {
   const { user } = req.headers;
-  const { username, tweet } = req.body;
+  const { tweet } = req.body;
 
-  const errors = [];
+  const hasTweetAndIsString = tweet && typeof tweet === 'string';
 
-  if (!findUser(user)) {
+  const foundUser = findUser(user);
+
+  if (!hasTweetAndIsString) {
+    return res.status(400).send('Todos os campos são obrigatórios!');
+  }
+
+  if (!foundUser) {
     return res.status(401).send('UNAUTHORIZED');
   }
 
-  if (username === '' || username === undefined) {
-    errors.push('O campo username é obrigatório!');
-  }
-  if (tweet === '' || tweet === undefined) {
-    errors.push('O campo tweet é obrigatório!');
-  }
-
-  if (errors.length > 0) {
-    return res.status(422).send(errors);
-  } else {
-    tweets.push({ username, tweet });
-    return res.status(200).send('Ok');
-  }
+  tweets.push({ username: user, tweet });
+  return res.status(201).send('Ok');
 });
 
 app.get('/tweets', (req, res) => {
   const idxLastTenTweets = tweets.length - 11;
-  console.log('idxLastTenTweets', idxLastTenTweets);
-  console.log('tweets.length', tweets.length);
+  const { page } = req.query;
 
-  const lastTenTweets = tweets
-    .filter((_, idx) => idx > idxLastTenTweets)
+  if (!page) {
+    const lastTenTweets = tweets
+      .filter((_, idx) => idx > idxLastTenTweets)
+      .map(item => {
+        const foundUser = findUser(item.username);
+
+        return { ...item, avatar: foundUser.avatar };
+      });
+    return res.status(200).send(lastTenTweets);
+  } else {
+    if (page >= 1) {
+      const minIdxTweetsPage = tweets.length - page * 10;
+      const maxIdxTweetsPage = minIdxTweetsPage + 9;
+
+      const filteredTweets = tweets
+        .filter((_, idx) => idx >= minIdxTweetsPage && idx <= maxIdxTweetsPage)
+        .map(item => {
+          const foundUser = findUser(item.username);
+
+          return { ...item, avatar: foundUser.avatar };
+        });
+
+      return res.status(200).send(filteredTweets);
+    }
+
+    return res.sendStatus(400);
+  }
+});
+
+app.get('/tweets/:username', (req, res) => {
+  const username = req.params.username;
+  const tweetsByUsername = tweets
+    .filter(user => user.username === username)
     .map(item => {
-      const avatar = findUser(item.username).avatar;
+      const foundUser = findUser(item.username);
 
-      return { ...item, avatar };
+      return { ...item, avatar: foundUser.avatar };
     });
 
-  return res.status(200).send(lastTenTweets);
+  return res.status(200).send(tweetsByUsername);
 });
 
 const PORT = 5000;
