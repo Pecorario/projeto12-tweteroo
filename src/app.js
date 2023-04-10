@@ -90,21 +90,16 @@ app.get('/tweets/:username', (req, res) => {
   const { username } = req.params;
   const foundUser = findUser(username);
 
-  if (!foundUser) {
-    return res.sendStatus(400);
-  } else {
-    const tweetsByUsername = tweets
-      .filter(user => user.username === username)
-      .map(item => {
-        return {
-          username: item.username,
-          avatar: foundUser.avatar,
-          tweet: item.tweet
-        };
-      });
+  const tweetsByUsername = tweets
+    .filter(tweet => tweet.username.toLowerCase() === username.toLowerCase())
+    .map(item => {
+      return {
+        ...item,
+        avatar: foundUser.avatar
+      };
+    });
 
-    return res.status(200).send(tweetsByUsername);
-  }
+  return res.status(200).send(tweetsByUsername);
 });
 
 const PORT = 5000;
