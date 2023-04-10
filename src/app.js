@@ -24,9 +24,9 @@ app.post('/sign-up', (req, res) => {
     return res.status(400).send('Todos os campos são obrigatórios!');
   }
 
-  if (findUser(username)) {
-    return res.status(400).send('Este username já está em uso!');
-  }
+  // if (findUser(username)) {
+  //   return res.status(400).send('Este username já está em uso!');
+  // }
 
   users.push({ username, avatar });
   return res.status(201).send('Ok');
