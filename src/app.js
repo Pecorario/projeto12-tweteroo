@@ -91,7 +91,7 @@ app.get('/tweets/:USERNAME', (req, res) => {
   const foundUser = findUser(username);
 
   if (!foundUser) {
-    return res.status(400);
+    return res.sendStatus(400);
   } else {
     const tweetsByUsername = tweets
       .filter(user => user.username === username)
